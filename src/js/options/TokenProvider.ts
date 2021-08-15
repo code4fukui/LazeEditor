@@ -75,6 +75,7 @@ const jaKeywordList = {
 		until: 'まで',
 		break: '抜ける',
 		continue: '次へ',
+		repeat: '回繰り返す',
 		loop: '無限ループ',
 		include: '#include',
 		private: '非公開',
@@ -142,7 +143,8 @@ const tokenPatterns = {
 	brackets: new RegExp('[\\(\\)（）]', 'g'),
 	syntax: {
 		function: new RegExp('[\\(（](.*)[\\)）](\\s*\\=\\>\\s*)[\\(（](.*?)[\\)）](\\s*[\\=＝].*?(?:;|$))?'),
-		for: new RegExp('[\\(（](.*)[）\\)](\\s*から\\s*)[\\(（](.*)[）\\)](\\s*まで\\s*)[\\(（](.*)[）\\)](?:\\s*[{｛}])', 'g'),
+		for: new RegExp(`[\\(（](.*)[）\\)](\\s*${jaKeywordList.control.from}\\s*)[\\(（](.*)[）\\)](\\s*${jaKeywordList.control.until}\\s*)[\\(（](.*)[）\\)](?:\\s*[{｛}])`, 'g'),
+		repeat: new RegExp(`${jaKeywordList.control.repeat}`, 'g'),
 	},
 	comment: {
 		line: new RegExp('\\/\\/.*', 'g'),
@@ -489,8 +491,6 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 		// 変数
 		for (let match = null; (match = tokenPatterns.variable.exec(content)); ) {
 			if (!tokens.control!.concat(tokens.keywords!, tokens.typeKeywords!, classes).includes(match[1])) {
-				console.log(match);
-
 				// 呼び出し
 				if (match[2])
 					contentDatas.push({
@@ -545,6 +545,7 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 			});
 		}
 		// 特殊構文
+		// からまで
 		for (let match = null; (match = tokenPatterns.syntax.for.exec(content)); ) {
 			let index = match.index;
 			completionDatas.push(
@@ -579,6 +580,14 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 					index: (index += 1 + match[5].length),
 				}
 			);
+		}
+		// 回繰り返す
+		for (let match = null; (match = tokenPatterns.syntax.repeat.exec(content)); ) {
+			completionDatas.push({
+				index: match.index,
+				type: 'scope',
+				name: '@repeat',
+			});
 		}
 
 		//#endregion
@@ -785,6 +794,15 @@ monaco.languages.registerCompletionItemProvider('Laze', {
 									break;
 								}
 							}
+						});
+						break;
+					case '@repeat':
+						if (!stack[stackLevel + 1]) stack[stackLevel + 1] = [];
+						stack[stackLevel + 1].push({
+							type: 'variable',
+							name: 'カウンタ',
+							varType: '整数',
+							accessType: classStack.accessType,
 						});
 						break;
 					case '@private':
