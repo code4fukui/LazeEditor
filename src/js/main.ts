@@ -74,3 +74,5 @@ const editor = monaco.editor.create(document.getElementById('editor')!, {
 });
 editor.getModel()!.updateOptions({ tabSize: 2 });
 window.onresize = () => editor.layout();
+
+export default editor;
