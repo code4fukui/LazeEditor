@@ -131,9 +131,9 @@ const tokenPatterns = {
 	keyword: new RegExp(`[${tokens.char}][${tokens.charnum}]*`, 'g'),
 	types: new RegExp(`(${tokens.typeKeywords!.join('|')})\\s*(?=${tokens.colon})`, 'g'),
 	variable: new RegExp(
-		`((?:[${tokens.separators.replace('\\:', '')}]|^)(${tokenPatternDefine.name})(?=\\s+[^\\(\\{（｛\\s\\:]|[^${tokens.char}\\(\\{（｛\\s\\:]|\\s*$)|${tokenPatternDefine.separator}${
-			tokenPatternDefine.types
-		}(${tokenPatternDefine.name}))`,
+		`(${tokenPatternDefine.separator}${tokenPatternDefine.types}(${tokenPatternDefine.name})|(?:[${tokens.separators.replace('\\:', '')}]|^)(${tokenPatternDefine.name})(?=\\s+[^\\(\\{（｛\\s\\:]|[^${
+			tokens.char
+		}\\(\\{（｛\\s\\:]|\\s*$))`,
 		'g'
 	),
 	number: new RegExp(`${tokenPatternDefine.separator}((0b|0x)?${tokens.number}(?:${tokens.number}|\\.)*)`, 'g'),
@@ -382,6 +382,9 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 				index: match.index,
 			});
 		}
+
+		classes.push('場面', 'ベクトル3D', 'モデル', '配列', '行列4x4', '文字列', 'カメラ');
+
 		// typeKeywordsにclassを追加
 		// ちょっとハードコード感ある...
 		let tokenPatternDefineEdit = tokenPatternDefine;
@@ -490,29 +493,30 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 		}
 		// 変数
 		for (let match = null; (match = tokenPatterns.variable.exec(content)); ) {
-			if (!tokens.control!.concat(tokens.keywords!, tokens.typeKeywords!, classes).includes(match[1])) {
+			const name = match[4] ? match[4] : match[3];
+			if (!tokens.control!.concat(tokens.keywords!, tokens.typeKeywords!, classes).includes(name)) {
 				// 呼び出し
-				if (match[2])
+				if (match[4])
 					contentDatas.push({
-						index: match.index + match[0].length - match[2].length,
-						length: match[2].length,
+						index: match.index + match[0].length - match[4].length,
+						length: match[4].length,
 						type: 'variable',
 						modifier: '',
 					});
 				// 宣言
 				else {
 					contentDatas.push({
-						index: match.index + 1 + match[3].length,
-						length: match[4].length,
+						index: match.index + match[0].length - match[3].length,
+						length: match[3].length,
 						type: 'variable',
 						modifier: 'declaration',
 					});
 
 					completionDatas.push({
 						type: 'variable',
-						name: match[4],
-						index: match.index + 1 + match[3].length,
-						varType: match[3].slice(0, -1),
+						name: match[3],
+						index: match.index + 1 + match[2].length,
+						varType: match[2].match(/(\S+)\s*[:：]\s*/)![1],
 					});
 				}
 			}
@@ -683,6 +687,10 @@ monaco.languages.registerCompletionItemProvider('Laze', {
 			accessType: 'public',
 		};
 		let classMembers: { [key: string]: classMember[] } = {};
+
+		classMembers = JSON.parse(
+			'{"ベクトル3D":[{"type":"variable","name":"x","varType":"実数","accessType":"public"},{"type":"variable","name":"y","varType":"実数","accessType":"public"},{"type":"variable","name":"z","varType":"実数","accessType":"public"},{"type":"function","name":"ベクトル3D","accessType":"public"},{"type":"function","name":"長さ","accessType":"public"},{"type":"function","name":"正規化","accessType":"public"}],"文字列":[{"type":"variable","name":"content","varType":"文字","accessType":"public"},{"type":"variable","name":"length","varType":"整数","accessType":"public"},{"type":"function","name":"文字列","accessType":"public"},{"type":"function","name":"代入","accessType":"public"}],"行列4x4":[{"type":"variable","name":"matrix","varType":"実数","accessType":"public"},{"type":"function","name":"行列4x4","accessType":"public"},{"type":"function","name":"初期化","accessType":"public"},{"type":"function","name":"移動","accessType":"public"},{"type":"function","name":"回転","accessType":"public"},{"type":"function","name":"拡大縮小","accessType":"public"}],"配列":[{"type":"variable","name":"size","varType":"整数","accessType":"public"},{"type":"function","name":"配列","accessType":"public"},{"type":"function","name":"取得","accessType":"public"},{"type":"function","name":"追加","accessType":"public"},{"type":"function","name":"長さ","accessType":"public"},{"type":"variable","name":"allocated","varType":"整数","accessType":"private"}],"カメラ":[{"type":"variable","name":"感度","varType":"実数","accessType":"public"},{"type":"function","name":"カメラ","accessType":"public"},{"type":"function","name":"感度設定","accessType":"public"},{"type":"function","name":"アップデート","accessType":"public"},{"type":"variable","name":"yaw","varType":"実数","accessType":"private"},{"type":"variable","name":"pitch","varType":"実数","accessType":"private"}],"モデル":[{"type":"function","name":"モデル","accessType":"public"},{"type":"function","name":"座標設定","accessType":"public"},{"type":"function","name":"移動","accessType":"public"},{"type":"function","name":"拡大縮小","accessType":"public"},{"type":"function","name":"回転","accessType":"public"},{"type":"function","name":"描画","accessType":"public"},{"type":"variable","name":"vertices","varType":"実数","accessType":"private"},{"type":"variable","name":"vertexNum","varType":"整数","accessType":"private"},{"type":"variable","name":"shaderID","varType":"整数","accessType":"private"}],"場面":[{"type":"variable","name":"目","varType":"カメラ","accessType":"public"},{"type":"function","name":"場面","accessType":"public"},{"type":"function","name":"描画","accessType":"public"},{"type":"function","name":"キューブ追加","accessType":"public"},{"type":"function","name":"ライト追加","accessType":"public"},{"type":"variable","name":"last","varType":"実数","accessType":"private"},{"type":"variable","name":"now","varType":"実数","accessType":"private"},{"type":"variable","name":"elapsedTime","varType":"実数","accessType":"private"},{"type":"variable","name":"lastX","varType":"実数","accessType":"private"},{"type":"variable","name":"lastY","varType":"実数","accessType":"private"}]}'
+		);
 		completions.forEach((completion, index, array) => {
 			if (completion.type === 'scope') {
 				switch (completion.name) {
@@ -743,15 +751,14 @@ monaco.languages.registerCompletionItemProvider('Laze', {
 								const comp = stack[stackLevel].filter((stack) => stack.name === variable && stack.type === 'variable');
 
 								if (comp.length > 0) {
-									console.log(comp[0]);
-
 									if (comp[0].varType) {
 										for (const member of classMembers[comp[0].varType]) {
-											suggestions.push({
-												label: member.name,
-												kind: member.type === 'variable' ? monaco.languages.CompletionItemKind.Variable : monaco.languages.CompletionItemKind.Function,
-												insertText: member.name,
-											});
+											if (member.accessType === 'public')
+												suggestions.push({
+													label: member.name,
+													kind: member.type === 'variable' ? monaco.languages.CompletionItemKind.Variable : monaco.languages.CompletionItemKind.Function,
+													insertText: member.name,
+												});
 										}
 									}
 								}
