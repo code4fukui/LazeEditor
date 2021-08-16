@@ -127,7 +127,7 @@ const tokenPatternDefine = {
 };
 const tokenPatterns = {
 	function: new RegExp(`${tokenPatternDefine.types}?(${jaKeywordList.keywords.function}${tokens.colon})?(${tokenPatternDefine.name})(?=\\s*[\\(（])`, 'g'),
-	class: new RegExp(`${jaKeywordList.keywords.class}${tokens.colon}(${tokenPatternDefine.name})`, 'g'),
+	class: new RegExp(`${jaKeywordList.keywords.class}\\s*${tokens.colon}\\s*(${tokenPatternDefine.name})`, 'g'),
 	keyword: new RegExp(`[${tokens.char}][${tokens.charnum}]*`, 'g'),
 	types: new RegExp(`(${tokens.typeKeywords!.join('|')})\\s*(?=${tokens.colon})`, 'g'),
 	variable: new RegExp(
