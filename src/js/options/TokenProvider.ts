@@ -367,10 +367,9 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 
 		//#endregion
 
-		// テンプレート
+		// テンプレート（宣言）
 		let classes = [];
 		for (let match = null; (match = tokenPatterns.template.exec(content)); ) {
-			console.log(match);
 			contentDatas.push({
 				index: match.index + match[0].indexOf(match[1]) + match[1].indexOf(match[2]),
 				length: match[2].length,
@@ -408,11 +407,34 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 		// typeKeywordsにclassを追加
 		// ちょっとハードコード感ある...
 		let tokenPatternDefineEdit = tokenPatternDefine;
-		tokenPatternDefineEdit.types = tokenPatternDefine.types.replace(tokens.typeKeywords!.join('|'), tokens.typeKeywords!.concat(classes).join('|'));
+		tokenPatternDefineEdit.types = tokenPatternDefine.types.replace(tokens.typeKeywords!.join('|') + ')', tokens.typeKeywords!.concat(classes).join('|') + ')');
 		let tokenPatternsEdit = tokenPatterns;
-		tokenPatternsEdit.types = new RegExp(regexpToString(tokenPatterns.types).replace(tokens.typeKeywords!.join('|'), tokens.typeKeywords!.concat(classes).join('|')), 'g');
-		tokenPatternsEdit.variable = new RegExp(regexpToString(tokenPatterns.variable).replace(tokens.typeKeywords!.join('|'), tokens.typeKeywords!.concat(classes).join('|')), 'g');
-		tokenPatternsEdit.function = new RegExp(regexpToString(tokenPatterns.function).replace(tokens.typeKeywords!.join('|'), tokens.typeKeywords!.concat(classes).join('|')), 'g');
+		tokenPatternsEdit.types = new RegExp(regexpToString(tokenPatterns.types).replace(tokens.typeKeywords!.join('|') + ')', tokens.typeKeywords!.concat(classes).join('|') + ')'), 'g');
+		tokenPatternsEdit.variable = new RegExp(regexpToString(tokenPatterns.variable).replace(tokens.typeKeywords!.join('|') + ')', tokens.typeKeywords!.concat(classes).join('|') + ')'), 'g');
+		tokenPatternsEdit.function = new RegExp(regexpToString(tokenPatterns.function).replace(tokens.typeKeywords!.join('|') + ')', tokens.typeKeywords!.concat(classes).join('|') + ')'), 'g');
+
+		// テンプレート（呼び出し）
+		const templateCall = new RegExp(`(${classes.join('|')})\\s*([<＜]\\s*(${tokens.typeKeywords!.concat(classes).join('|')})\\s*[>＞])\\s*${tokens.colon}\\s*(${tokenPatternDefine.name})`, 'g');
+		for (let match = null; (match = templateCall.exec(content)); ) {
+			contentDatas.push({
+				index: match.index,
+				length: match[1].length,
+				type: 'class',
+				modifier: '',
+			});
+			contentDatas.push({
+				index: match.index + match[0].indexOf(match[2]) + match[2].indexOf(match[3]),
+				length: match[3].length,
+				type: 'type',
+				modifier: '',
+			});
+			contentDatas.push({
+				index: match.index + match[0].length - match[4].length,
+				length: match[4].length,
+				type: 'variable',
+				modifier: '',
+			});
+		}
 
 		// キーワード
 		for (let match = null; (match = tokenPatterns.keyword.exec(content)); ) {
