@@ -681,6 +681,13 @@ monaco.languages.registerCompletionItemProvider('Laze', {
 				documentation: ['繰り返し処理', '', '(整数：カウンタ = 0;) から (カウンタ == 回数) まで (カウンタ++;) {', '\t', '}'].join('\n'),
 			},
 			{
+				label: '回繰り返す',
+				kind: monaco.languages.CompletionItemKind.Snippet,
+				insertText: ['(${1:回数}){', '\t$0', '}'].join('\n'),
+				insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+				documentation: ['(回数){', '\t$0', '}'].join('\n'),
+			},
+			{
 				label: '関数',
 				kind: monaco.languages.CompletionItemKind.Snippet,
 				insertText: ['関数:${1:関数名} (${2:引数}) => (${3:戻り値}) {', '\t$0', '}'].join('\n'),
