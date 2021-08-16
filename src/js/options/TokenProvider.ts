@@ -216,8 +216,6 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 		// ブロックコメント /* */
 		let blockStack: number | null = null;
 		for (let match = null; (match = tokenPatterns.comment.block.exec(content)); ) {
-			console.log(match);
-
 			if (match[0] === '/*') {
 				// start
 				if (blockStack === null) {
@@ -434,6 +432,13 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 				type: 'variable',
 				modifier: '',
 			});
+
+			completionDatas.push({
+				type: 'variable',
+				name: match[4],
+				index: match.index + match[0].length - match[4].length,
+				varType: match[1],
+			});
 		}
 
 		// キーワード
@@ -558,7 +563,7 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 						type: 'variable',
 						name: match[3],
 						index: match.index + 1 + match[2].length,
-						varType: match[2].match(/(\S+)\s*[:：]\s*/)![1],
+						varType: match[2].match(/([^\s<>]+)(?:<[^\s<>]>)?\s*[:：]\s*/)![1],
 					});
 				}
 			}
