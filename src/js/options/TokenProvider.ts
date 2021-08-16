@@ -683,9 +683,9 @@ monaco.languages.registerCompletionItemProvider('Laze', {
 			{
 				label: '回繰り返す',
 				kind: monaco.languages.CompletionItemKind.Snippet,
-				insertText: ['(${1:回数}){', '\t$0', '}'].join('\n'),
+				insertText: ['(${1:回数})回繰り返す {', '\t$0', '}'].join('\n'),
 				insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-				documentation: ['(回数){', '\t$0', '}'].join('\n'),
+				documentation: ['(回数)回繰り返す {', '\t$0', '}'].join('\n'),
 			},
 			{
 				label: '関数',
