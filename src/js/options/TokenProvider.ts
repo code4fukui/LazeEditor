@@ -61,6 +61,7 @@ const jaKeywordList = {
 		false: '偽',
 		function: '関数',
 		class: 'クラス',
+		template: '型',
 	},
 	functions: {
 		loadJS: 'js読み込み',
@@ -127,6 +128,7 @@ const tokenPatternDefine = {
 };
 const tokenPatterns = {
 	function: new RegExp(`${tokenPatternDefine.types}?(${jaKeywordList.keywords.function}${tokens.colon})?(${tokenPatternDefine.name})(?=\\s*[\\(（])`, 'g'),
+	template: new RegExp(`${jaKeywordList.keywords.template}\\s*([<＜]\\s*(${tokenPatternDefine.name})\\s*[>＞])\\s*${tokens.colon}`, 'g'),
 	class: new RegExp(`${jaKeywordList.keywords.class}\\s*${tokens.colon}\\s*(${tokenPatternDefine.name})`, 'g'),
 	keyword: new RegExp(`[${tokens.char}][${tokens.charnum}]*`, 'g'),
 	types: new RegExp(`(${tokens.typeKeywords!.join('|')})\\s*(?=${tokens.colon})`, 'g'),
@@ -365,11 +367,29 @@ monaco.languages.registerDocumentSemanticTokensProvider('Laze', {
 
 		//#endregion
 
-		// クラス（宣言）
+		// テンプレート
 		let classes = [];
+		for (let match = null; (match = tokenPatterns.template.exec(content)); ) {
+			console.log(match);
+			contentDatas.push({
+				index: match.index + match[0].indexOf(match[1]) + match[1].indexOf(match[2]),
+				length: match[2].length,
+				type: 'class',
+				modifier: '',
+			});
+
+			classes.push(match[2]);
+			completionDatas.push({
+				type: 'template',
+				name: match[2],
+				index: match.index,
+			});
+		}
+
+		// クラス（宣言）
 		for (let match = null; (match = tokenPatterns.class.exec(content)); ) {
 			contentDatas.push({
-				index: match.index + match[0].indexOf(match[1]),
+				index: match.index + match[0].length - match[1].length,
 				length: match[1].length,
 				type: 'class',
 				modifier: '',
@@ -832,6 +852,13 @@ monaco.languages.registerCompletionItemProvider('Laze', {
 				if (completion.type === 'class') {
 					classStack.flag = true;
 					classStack.name = completion.name;
+				}
+				if (completion.type === 'template') {
+					if (!stack[stackLevel + 1]) stack[stackLevel + 1] = [];
+					stack[stackLevel + 1].push({
+						name: completion.name,
+						type: 'class',
+					});
 				}
 			}
 		});

@@ -71,6 +71,7 @@ const editor = monaco.editor.create(document.getElementById('editor')!, {
 	autoClosingBrackets: 'always',
 	autoClosingOvertype: 'always',
 	'semanticHighlighting.enabled': true,
+	wordBasedSuggestions: false,
 });
 editor.getModel()!.updateOptions({ tabSize: 2 });
 window.onresize = () => editor.layout();
