@@ -1,5 +1,7 @@
 # LazeEditor
 
+> 日本語のREADMEはこちらです: [README.ja.md](README.ja.md)
+
 The LazeEditor is a web-based code editor that uses the Monaco Editor library to provide a rich coding experience for the Laze programming language.
 
 ## Features
