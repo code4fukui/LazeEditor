@@ -18,26 +18,22 @@ The LazeEditor is a web-based code editor that uses the Monaco Editor library to
 ## Usage
 
 1. Clone the repository:
-
    ```
    git clone https://github.com/your-username/LazeEditor.git
    ```
 
 2. Install the dependencies:
-
    ```
    cd LazeEditor
    npm install
    ```
 
 3. Build the project:
-
    ```
    npm run build
    ```
 
 4. Start the development server:
-
    ```
    npm start
    ```
