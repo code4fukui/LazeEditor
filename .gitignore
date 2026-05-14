@@ -1,2 +1,6 @@
 node_modules
 dist/js
+# meta-ops cleanup
+.DS_Store
+Thumbs.db
+node_modules/
